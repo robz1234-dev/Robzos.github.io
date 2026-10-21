@@ -1,0 +1,154 @@
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#101629">
+<title>RobyGPT OS Ultimate</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:white;background:#101629}
+button{font:inherit;color:white;border:0;cursor:pointer}
+#os{min-height:100dvh;background:radial-gradient(ellipse at 15% 20%,#5269c8,transparent 45%),radial-gradient(ellipse at 85% 70%,#9d4ba8,transparent 45%),linear-gradient(145deg,#101629,#263c67);padding:15px;overflow:hidden}
+.status{display:flex;justify-content:space-between;font-size:14px;font-weight:600;padding:5px 5px 15px}
+.welcome{margin:45px 5px 35px}
+#clock{font-size:55px;font-weight:250;letter-spacing:-2px}
+#date{font-size:16px;opacity:.85;margin-top:5px}
+.search{background:#ffffff24;border:1px solid #ffffff30;border-radius:18px;padding:12px;margin-bottom:28px}
+.apps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:24px 10px}
+.app{background:transparent;display:flex;flex-direction:column;align-items:center;gap:7px;font-size:11px;min-width:0}
+.appicon{width:min(17vw,66px);height:min(17vw,66px);border-radius:19px;display:grid;place-items:center;font-size:30px;box-shadow:0 6px 15px #0002}
+.app span:last-child{white-space:nowrap}
+.dock{margin:38px 0 15px;padding:15px 8px;background:#ffffff27;border:1px solid #ffffff28;border-radius:27px;display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.dock .appicon{width:100%;height:auto;aspect-ratio:1;border-radius:18px}
+.homebar{width:115px;height:5px;background:white;border-radius:8px;margin:22px auto 5px}
+.panel{position:fixed;inset:0;z-index:4;background:#111827f5;backdrop-filter:blur(30px);padding:24px;overflow:auto;display:none}
+.panel h2{font-size:28px;margin:18px 0}
+.close{float:right;background:#ffffff24;border-radius:50%;width:38px;height:38px;font-size:23px}
+.tile{padding:16px;border-radius:18px;background:#ffffff19;margin:10px 0}
+.tile button,.action{padding:11px 15px;border-radius:13px;background:#5275df;margin:4px}
+input,textarea{width:100%;padding:13px;border:0;border-radius:12px;margin:8px 0;font:inherit}
+textarea{min-height:130px}
+.wallpapers{display:flex;gap:10px;flex-wrap:wrap}
+.wallpapers button{width:65px;height:65px;border-radius:17px}
+.small{opacity:.7;font-size:13px}
+#appsgrid{padding-bottom:5px}
+</style>
+</head>
+<body>
+<div id="os">
+  <div class="status"><span id="statusTime">9:41</span><span>●●● ▰</span></div>
+  <section class="welcome">
+    <div id="clock">09:41</div>
+    <div id="date">Bienvenue chez toi 👋</div>
+  </section>
+  <div class="search">🔎 <input id="search" placeholder="Rechercher une app…" style="display:inline;width:75%;background:transparent;color:white;padding:2px" oninput="filterApps(this.value)"></div>
+  <div class="apps" id="appsgrid">
+    <button class="app" data-name="Safari" onclick="openApp('Safari')"><span class="appicon" style="background:#fff;color:#2586ee">🧭</span><span>Robyfari</span></button>
+    <button class="app" data-name="Chat" onclick="openApp('Chat')"><span class="appicon" style="background:#20b878">💬</span><span>Chat Roby</span></button>
+    <button class="app" data-name="Photos" onclick="openApp('Photos')"><span class="appicon" style="background:#fff">🌈</span><span>Photos</span></button>
+    <button class="app" data-name="Réglages" onclick="openApp('Réglages')"><span class="appicon" style="background:#737d8e">⚙️</span><span>Réglages</span></button>
+    <button class="app" data-name="Store" onclick="openApp('Store')"><span class="appicon" style="background:#3987ff">🛍️</span><span>App Store</span></button>
+    <button class="app" data-name="Notes" onclick="openApp('Notes')"><span class="appicon" style="background:#ffda55;color:#302800">📝</span><span>Notes</span></button>
+    <button class="app" data-name="Jeux" onclick="openApp('Jeux')"><span class="appicon" style="background:#9d65e8">🎮</span><span>Jeux</span></button>
+    <button class="app" data-name="Contrôle" onclick="openApp('Contrôle')"><span class="appicon" style="background:#404d68">☀️</span><span>Contrôle</span></button>
+  </div>
+  <div class="dock">
+    <button class="app" onclick="openApp('Téléphone')"><span class="appicon" style="background:#20b878">📞</span></button>
+    <button class="app" onclick="openApp('Messages')"><span class="appicon" style="background:#2189ff">✉️</span></button>
+    <button class="app" onclick="openApp('Musique')"><span class="appicon" style="background:#e64d77">🎵</span></button>
+    <button class="app" onclick="openApp('Réglages')"><span class="appicon" style="background:#737d8e">⚙️</span></button>
+  </div>
+  <div style="text-align:center;font-size:12px;opacity:.8">RobyGPT OS Ultimate · Web Edition</div>
+  <div class="homebar"></div>
+</div>
+
+<div class="panel" id="panel">
+  <button class="close" onclick="closeApp()">×</button>
+  <div id="content"></div>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+function tick(){
+ const d=new Date();
+ $('clock').textContent=d.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+ $('statusTime').textContent=$('clock').textContent;
+ $('date').textContent=d.toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'});
+}
+tick();setInterval(tick,10000);
+
+function openApp(name){
+ $('panel').style.display='block';
+ let html='';
+ if(name==='Réglages'){
+ html=`<h2>⚙️ Réglages</h2>
+ <div class="tile"><b>Apparence</b><p>Choisis ton fond d’écran</p><div class="wallpapers">
+ <button style="background:linear-gradient(135deg,#5269c8,#c04fa3)" onclick="wall(1)"></button>
+ <button style="background:linear-gradient(135deg,#00a99d,#163b85)" onclick="wall(2)"></button>
+ <button style="background:linear-gradient(135deg,#ff9b43,#db386d)" onclick="wall(3)"></button>
+ <button style="background:linear-gradient(135deg,#111,#555)" onclick="wall(4)"></button>
+ </div></div>
+ <div class="tile"><b>À propos</b><p>RobyGPT OS Ultimate</p><p class="small">Version web 1.0 · Simulation</p></div>
+ <div class="tile"><button class="action" onclick="openApp('Contrôle')">Ouvrir le centre de contrôle</button></div>`;
+ }else if(name==='Contrôle'){
+ html=`<h2>☀️ Centre de contrôle</h2><div class="tile">🔆 Luminosité <input type="range" min="30" max="100" value="100" oninput="$('os').style.filter='brightness('+this.value+'%)'"></div><div class="tile">🔊 Volume simulé <input type="range" min="0" max="100" value="60"></div><div class="tile"><button class="action" onclick="wall(2)">🌙 Changer l’ambiance</button><button class="action" onclick="alert('Mode avion simulé ✈️')">✈️ Mode avion</button></div>`;
+ }else if(name==='Notes'){
+ html=`<h2>📝 Notes</h2><p>Écris ta note ici :</p><textarea id="note" placeholder="Ma note…"></textarea><button class="action" onclick="saveNote()">Enregistrer</button><p id="saved"></p>`;
+ }else if(name==='Chat'){
+ html=`<h2>💬 Chat Roby</h2><div class="tile">Salut Roby ! 👋 Bienvenue dans ton application de discussion démo.</div><input id="msg" placeholder="Écris un message…"><button class="action" onclick="sendMsg()">Envoyer</button><div id="chatlog"></div>`;
+ }else if(name==='Store'){
+ html=`<h2>🛍️ Roby Store</h2><p>Catalogue de démonstration</p>${['Robyfari','Chat Roby','My Hotel GO','Roby Photos'].map(x=>`<div class="tile">📦 ${x} <button class="action" onclick="alert('${x} est déjà disponible dans cette démo !')">Ouvrir</button></div>`).join('')}`;
+ }else if(name==='Safari'){
+ html=`<h2>🧭 Robyfari</h2><p>Ouvre un site web :</p><input id="url" placeholder="https://example.com"><button class="action" onclick="goWeb()">Ouvrir dans Safari</button><p class="small">Les sites externes s’ouvrent dans un nouvel onglet.</p>`;
+ }else if(name==='Photos'){
+ html=`<h2>🌈 Photos</h2><div class="tile">Cette démo ne lit pas automatiquement la photothèque de ton iPhone.</div><input type="file" accept="image/*" onchange="previewImage(event)"><div id="preview"></div>`;
+ }else if(name==='Jeux'){
+ html=`<h2>🎮 Mini-jeux</h2><div class="tile"><p>Compteur de clics : <b id="score">0</b></p><button class="action" onclick="$('score').textContent=Number($('score').textContent)+1">Gagner un point</button></div><div class="tile"><button class="action" onclick="openApp('My Hotel GO')">My Hotel GO</button></div>`;
+ }else if(name==='My Hotel GO'){
+ html=`<h2>🏨 My Hotel GO</h2><div class="tile">💰 Argent : <b id="money">100</b> pièces</div><div class="tile">🏨 Bienvenue dans ton hôtel !<p><button class="action" onclick="earn()">Encaisser 10 pièces</button></p><p id="hotel"></p></div>`;
+ }else{
+ html=`<h2>📱 ${name}</h2><div class="tile">Bienvenue dans ${name}, une application simulée de RobyGPT OS.</div><button class="action" onclick="closeApp()">Retour à l’accueil</button>`;
+ }
+ $('content').innerHTML=html;
+}
+function closeApp(){$('panel').style.display='none'}
+function wall(n){
+ const b=[
+ 'radial-gradient(ellipse at 15% 20%,#5269c8,transparent 45%),radial-gradient(ellipse at 85% 70%,#9d4ba8,transparent 45%),linear-gradient(145deg,#101629,#263c67)',
+ 'radial-gradient(ellipse at 20% 10%,#00a99d,transparent 45%),linear-gradient(145deg,#163b85,#101629)',
+ 'radial-gradient(ellipse at 20% 20%,#ff9b43,transparent 45%),linear-gradient(145deg,#db386d,#341b52)',
+ 'linear-gradient(145deg,#111,#555)'
+ ];
+ $('os').style.background=b[n-1];
+}
+function filterApps(q){
+ document.querySelectorAll('#appsgrid .app').forEach(a=>a.style.display=a.dataset.name.toLowerCase().includes(q.toLowerCase())?'flex':'none');
+}
+function saveNote(){
+ try{localStorage.setItem('roby-note',$('note').value);$('saved').textContent='Note enregistrée sur cet appareil !';}
+ catch(e){$('saved').textContent='Enregistrement indisponible dans cet aperçu.'}
+}
+function sendMsg(){
+ const i=$('msg');if(!i.value.trim())return;
+ $('chatlog').innerHTML+='<div class="tile">'+escapeHtml(i.value)+'</div>';i.value='';
+}
+function escapeHtml(s){return s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function goWeb(){
+ let u=$('url').value.trim();if(!u)return;
+ if(!/^https?:\/\//i.test(u))u='https://'+u;
+ window.open(u,'_blank','noopener');
+}
+function previewImage(e){
+ const f=e.target.files[0];if(!f)return;
+ const url=URL.createObjectURL(f);
+ $('preview').innerHTML='<img src="'+url+'" style="max-width:100%;border-radius:15px;margin-top:12px">';
+}
+function earn(){
+ const m=$('money');m.textContent=Number(m.textContent)+10;
+ $('hotel').textContent='Bravo ! Tu as encaissé 10 pièces.';
+}
+</script>
+</body>
+</html>
